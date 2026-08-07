@@ -126,32 +126,28 @@ Como es la primera vez trabajando con Python para un sistema web, algunas equiva
 
 ---
 
-## Fase 4 — Backend en Oracle Cloud Free Tier
+## Fase 4 — Backend en Render (Free Tier)
 
-- [ ] Crear cuenta en Oracle Cloud (Free Tier)
-- [ ] Crear instancia VM Ubuntu (Compute Instance, "Always Free" shape)
-- [ ] Generar/descargar par de claves SSH y conectarse a la VM
-- [ ] Actualizar el sistema (`apt update && apt upgrade`)
-- [ ] Instalar Python 3, pip, ffmpeg y dependencias del sistema
-- [ ] Clonar el repo (o subir el código del backend) a la VM
-- [ ] Crear entorno virtual e instalar `requirements.txt`
-- [ ] Configurar variables de entorno con `.env` (nada hardcodeado)
-- [ ] Configurar **Security List** de Oracle (abrir puertos necesarios: 80, 443, y el del backend si aplica)
-- [ ] Configurar firewall del sistema operativo (`ufw` o `iptables`) en línea con la Security List
-- [ ] Crear servicio `systemd` para correr FastAPI 24/7 (auto-restart si se cae, arranca al bootear la VM)
-- [ ] Verificar que el servicio responde localmente en la VM (`curl localhost:8000/health`)
+Se cambió de Oracle Cloud a Render por simplicidad (ver `plan-webapp-descargas.md`). Render deploya directamente desde GitHub, así que primero hay que subir el repo.
+
+- [x] Crear `backend/Dockerfile` (Python slim + `ffmpeg` vía `apt`, instala `requirements.txt`, corre `uvicorn` en `$PORT`) — necesario porque el runtime nativo de Python en Render no trae `ffmpeg`
+- [x] Crear `backend/.dockerignore` (excluye `venv/`, `downloads/`, `.env`, etc.)
+- [ ] Subir el repo a GitHub (crear el repo en GitHub, agregar como `origin`, `git push`)
+- [ ] Crear cuenta en Render
+- [ ] Crear un **Web Service** nuevo en Render:
+  - Conectar el repo de GitHub
+  - Root directory: `backend`
+  - Runtime: **Docker** (usa el `Dockerfile` de la carpeta)
+  - Plan: **Free**
+- [ ] Configurar variables de entorno en el dashboard de Render: `ALLOWED_ORIGINS` (por ahora, el origen local `http://localhost:5173` para poder probar contra el backend ya desplegado), `DOWNLOAD_DIR=downloads`. No configurar `FFMPEG_LOCATION` — el contenedor ya tiene `ffmpeg` en el `PATH` del sistema
+- [ ] Deploy y verificar que el servicio responde (`curl https://tu-servicio.onrender.com/health`)
+- [ ] Probar `/video-info` y una descarga real contra el backend ya desplegado (puede tardar el primer request por el "cold start")
 
 ---
 
-## Fase 5 — HTTPS (Nginx + Let's Encrypt)
+## Fase 5 — HTTPS
 
-- [ ] Conseguir un dominio o subdominio (Let's Encrypt no funciona solo con IP)
-- [ ] Apuntar el DNS del dominio/subdominio a la IP pública de la VM
-- [ ] Instalar Nginx en la VM
-- [ ] Configurar Nginx como proxy reverso (dominio → `localhost:8000` del backend)
-- [ ] Instalar Certbot y generar certificado SSL con Let's Encrypt
-- [ ] Verificar renovación automática del certificado (`certbot renew --dry-run`)
-- [ ] Confirmar que el backend responde correctamente por `https://tu-dominio.com`
+Con Render esto queda resuelto automáticamente: cada Web Service recibe un subdominio `*.onrender.com` con certificado SSL ya configurado. No hace falta Nginx, Let's Encrypt, ni dominio propio — se puede pasar directo a la Fase 6.
 
 ---
 
@@ -166,8 +162,8 @@ Como es la primera vez trabajando con Python para un sistema web, algunas equiva
 
 ## Fase 7 — CORS en producción
 
-- [ ] Actualizar el valor de `ALLOWED_ORIGINS` en el `.env` de la VM para que apunte al dominio de Vercel (en vez de `localhost`) — no hace falta tocar código si ya se leyó desde env var en la Fase 3
-- [ ] Reiniciar el servicio `systemd` para que tome el nuevo valor
+- [ ] Actualizar el valor de `ALLOWED_ORIGINS` en las variables de entorno de Render para que incluya el dominio de Vercel (además de o en vez de `localhost`) — no hace falta tocar código, ya se lee desde env var
+- [ ] Redeploy (Render lo hace automático al guardar la variable, o manualmente desde el dashboard)
 - [ ] Verificar que no hay errores de CORS en la consola del navegador
 
 ---
