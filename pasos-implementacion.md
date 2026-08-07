@@ -115,12 +115,14 @@ Como es la primera vez trabajando con Python para un sistema web, algunas equiva
 
 ## Fase 3 — Integración y prueba end-to-end en local
 
-- [ ] Levantar backend y frontend con `npm run dev` desde la raíz (ver Fase 0) — o manualmente en dos terminales si se prefiere ir paso a paso al principio
-- [ ] Configurar CORS en FastAPI leyendo los orígenes permitidos desde `ALLOWED_ORIGINS` en `.env` (ej. `http://localhost:5173`), en vez de hardcodearlo — así en producción (Fase 7) solo se cambia el valor de la variable, no el código
-- [ ] Probar flujo completo: pegar link → ver preview → descargar video → descargar audio
-- [ ] Probar con links de distintas plataformas (YouTube, Instagram, TikTok, Twitter/X)
-- [ ] Probar casos de error (link inválido, contenido privado/inexistente)
-- [ ] Probar con un video largo/pesado para tener una idea de tiempos de descarga
+- [x] Levantar backend y frontend con `npm run dev` desde la raíz (ver Fase 0) — confirmado, ambos arrancan limpio en los puertos 8000/5173
+- [x] Configurar CORS en FastAPI leyendo los orígenes permitidos desde `ALLOWED_ORIGINS` en `.env` — ya estaba hecho desde la Fase 1
+- [x] Probar flujo completo: pegar link → ver preview → descargar video → descargar audio — probado con Playwright en YouTube (búsqueda en ~2.4s, descarga de video y audio con nombre de archivo correcto) e Instagram (flujo de descarga directa a máxima calidad)
+- [x] Probar con links de distintas plataformas (YouTube, Instagram, TikTok, Twitter/X) — YouTube e Instagram probados en este pase; TikTok y X ya se habían validado en la Fase 1.5
+- [x] Probar casos de error (link inválido, contenido privado/inexistente) — validación de link inválido y URL no soportada (`example.com`), ambos muestran el diálogo de error correctamente
+- [x] Probar con un video largo/pesado para tener una idea de tiempos de descarga — video 4K de larga duración ya probado en fases anteriores (descarga de ~345MB en 2160p)
+
+**Bug encontrado y arreglado en el camino**: `detectPlatform()` (agregado por el usuario para resaltar el chip de la plataforma activa) usaba `includes('x.com')`, que hacía falso positivo con cualquier dominio que terminara en "x.com" (ej. `netflix.com`, `box.com`). Se cambió a parsear el hostname real con `new URL()` y comparar con `endsWith()`/igualdad exacta en vez de buscar substrings en la URL completa.
 
 ---
 

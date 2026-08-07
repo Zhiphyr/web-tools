@@ -33,11 +33,16 @@ function formatSize(bytes) {
 
 function detectPlatform(inputUrl) {
   if (!inputUrl) return null
-  const lower = inputUrl.toLowerCase()
-  if (lower.includes('youtube.com') || lower.includes('youtu.be')) return 'youtube'
-  if (lower.includes('instagram.com')) return 'instagram'
-  if (lower.includes('tiktok.com')) return 'tiktok'
-  if (lower.includes('twitter.com') || lower.includes('x.com')) return 'twitter'
+  let hostname
+  try {
+    hostname = new URL(inputUrl).hostname.toLowerCase()
+  } catch {
+    return null
+  }
+  if (hostname.endsWith('youtube.com') || hostname === 'youtu.be') return 'youtube'
+  if (hostname.endsWith('instagram.com')) return 'instagram'
+  if (hostname.endsWith('tiktok.com')) return 'tiktok'
+  if (hostname.endsWith('twitter.com') || hostname === 'x.com') return 'twitter'
   return null
 }
 
