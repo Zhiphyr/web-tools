@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+body {
+  background-color: #fdf6e3;
+  background-image: radial-gradient(#00000022 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+  font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+}
+
+.caution-stripes {
+  background-image: repeating-linear-gradient(45deg, #000 0 14px, #facc15 14px 28px);
+  background-size: 40px 40px;
+  animation: caution-move 0.8s linear infinite;
+}
+
+@keyframes caution-move {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 40px 0;
+  }
+}
+
+.marquee-track {
+  animation: marquee-scroll 18s linear infinite;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
