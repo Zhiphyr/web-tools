@@ -16,6 +16,18 @@ function filenameFromContentDisposition(header, fallback) {
   return match ? decodeURIComponent(match[1]) : fallback;
 }
 
+export async function checkHealth() {
+  const start = performance.now();
+  try {
+    const res = await fetch(`${API_URL}/health`);
+    const elapsed = performance.now() - start;
+    return { ok: res.ok, elapsed };
+  } catch {
+    const elapsed = performance.now() - start;
+    return { ok: false, elapsed };
+  }
+}
+
 export async function getVideoInfo(url) {
   const res = await fetch(`${API_URL}/video-info`, {
     method: "POST",

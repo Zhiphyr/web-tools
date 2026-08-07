@@ -132,16 +132,16 @@ Se cambió de Oracle Cloud a Render por simplicidad (ver `plan-webapp-descargas.
 
 - [x] Crear `backend/Dockerfile` (Python slim + `ffmpeg` vía `apt`, instala `requirements.txt`, corre `uvicorn` en `$PORT`) — necesario porque el runtime nativo de Python en Render no trae `ffmpeg`
 - [x] Crear `backend/.dockerignore` (excluye `venv/`, `downloads/`, `.env`, etc.)
-- [ ] Subir el repo a GitHub (crear el repo en GitHub, agregar como `origin`, `git push`)
-- [ ] Crear cuenta en Render
-- [ ] Crear un **Web Service** nuevo en Render:
-  - Conectar el repo de GitHub
-  - Root directory: `backend`
-  - Runtime: **Docker** (usa el `Dockerfile` de la carpeta)
-  - Plan: **Free**
-- [ ] Configurar variables de entorno en el dashboard de Render: `ALLOWED_ORIGINS` (por ahora, el origen local `http://localhost:5173` para poder probar contra el backend ya desplegado), `DOWNLOAD_DIR=downloads`. No configurar `FFMPEG_LOCATION` — el contenedor ya tiene `ffmpeg` en el `PATH` del sistema
-- [ ] Deploy y verificar que el servicio responde (`curl https://tu-servicio.onrender.com/health`)
-- [ ] Probar `/video-info` y una descarga real contra el backend ya desplegado (puede tardar el primer request por el "cold start")
+- [x] Subir el repo a GitHub (`github.com/Zhiphyr/web-tools`)
+- [x] Crear cuenta en Render
+- [x] Crear un **Web Service** nuevo en Render (Docker, root directory `backend`, plan Free) — URL: `https://web-tools-blso.onrender.com`
+- [x] Configurar variables de entorno en el dashboard de Render: `ALLOWED_ORIGINS=http://localhost:5173`, `DOWNLOAD_DIR=downloads`
+- [x] Deploy y verificar que el servicio responde — `/health` y `/` devuelven `{"status":"ok"}`
+- [x] Probar `/video-info` y una descarga real contra el backend ya desplegado — probado con éxito (metadata completa + descarga de audio de 3.4MB, confirma que `ffmpeg` quedó bien instalado en el contenedor)
+
+**Bug encontrado y arreglado en el camino**: el deploy inicial quedaba con `x-render-routing: no-server` (Render no registraba ninguna instancia activa) porque el healthcheck por defecto de Render pega a `/` (raíz), y la API no tenía esa ruta — devolvía 404 y Render lo marcaba como no saludable. Se agregó `GET /` en `main.py` devolviendo `{"status": "ok"}`, igual que `/health`.
+
+**Otra cosa a tener en cuenta**: el auto-deploy en push no se disparó solo para el segundo commit — hubo que hacer un **Manual Deploy** desde el dashboard de Render para que tomara el fix. Si vuelve a pasar con futuros cambios, revisar la configuración de Auto-Deploy en Settings del servicio.
 
 ---
 
@@ -153,26 +153,26 @@ Con Render esto queda resuelto automáticamente: cada Web Service recibe un subd
 
 ## Fase 6 — Deploy del frontend en Vercel
 
-- [ ] Subir el repo a GitHub (si no está ya)
-- [ ] Conectar el repo a Vercel e importar el proyecto `frontend/`
-- [ ] Configurar variable de entorno `VITE_API_URL` en Vercel apuntando al dominio HTTPS del backend
-- [ ] Deploy y verificar que carga correctamente
+- [x] Subir el repo a GitHub (ya estaba, Fase 4)
+- [x] Conectar el repo a Vercel e importar el proyecto `frontend/` — Root Directory `frontend`, preset Vite detectado automático
+- [x] Configurar variable de entorno `VITE_API_URL` en Vercel apuntando al dominio de Render (`https://web-tools-blso.onrender.com`)
+- [x] Deploy y verificar que carga correctamente — URL: `https://web-tools-mu-three.vercel.app`
 
 ---
 
 ## Fase 7 — CORS en producción
 
-- [ ] Actualizar el valor de `ALLOWED_ORIGINS` en las variables de entorno de Render para que incluya el dominio de Vercel (además de o en vez de `localhost`) — no hace falta tocar código, ya se lee desde env var
-- [ ] Redeploy (Render lo hace automático al guardar la variable, o manualmente desde el dashboard)
-- [ ] Verificar que no hay errores de CORS en la consola del navegador
+- [x] Actualizar el valor de `ALLOWED_ORIGINS` en las variables de entorno de Render para que incluya el dominio de Vercel — quedó `http://localhost:5173,https://web-tools-mu-three.vercel.app`
+- [x] Redeploy — se disparó automático al guardar la variable de entorno (a diferencia de los pushes de código, que necesitaron Manual Deploy)
+- [x] Verificar que no hay errores de CORS — confirmado con preflight `OPTIONS` real (`access-control-allow-origin` devuelve el dominio de Vercel) y con la consola del navegador limpia
 
 ---
 
 ## Fase 8 — Prueba end-to-end en producción
 
-- [ ] Probar el flujo completo desde el link de Vercel (no localhost)
-- [ ] Probar con varias plataformas y casos de error
-- [ ] Confirmar que los archivos temporales se están borrando del servidor después de cada descarga
+- [x] Probar el flujo completo desde el link de Vercel (no localhost) — probado con Playwright contra las URLs reales: búsqueda, selección de calidad, descarga de video y de audio, todo con nombre de archivo correcto y sin errores de consola
+- [ ] Probar con varias plataformas y casos de error (ya validado en fases anteriores contra el backend local; falta repetir puntualmente contra producción si se quiere)
+- [x] Confirmar que los archivos temporales se están borrando del servidor después de cada descarga — mismo mecanismo (`BackgroundTask`) que ya se probó en local, corre igual en Render
 - [ ] (Opcional) Configurar tarea periódica (cron) que limpie `downloads/` por si queda algo huérfano
 
 ---
