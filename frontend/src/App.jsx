@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   AlertTriangle,
   Camera,
@@ -225,14 +225,51 @@ function App() {
   const [selectedAudioQuality, setSelectedAudioQuality] = useState('320')
   const [backendStatus, setBackendStatus] = useState('checking')
   const [checkingSlow, setCheckingSlow] = useState(false)
+  const healthResolvedRef = useRef(false)
+
+  function markBackendAwake() {
+    healthResolvedRef.current = true
+    setBackendStatus('awake')
+  }
+
+  function handleApiError(err) {
+    const status = err.cause?.status ?? null
+    setError(err.message)
+    setErrorStatus(status)
+    // A defined status means the backend actually answered (even with an error) — it's awake.
+    if (status != null) markBackendAwake()
+  }
 
   useEffect(() => {
-    const slowTimer = setTimeout(() => setCheckingSlow(true), 4000)
-    checkHealth().then(({ ok }) => {
-      clearTimeout(slowTimer)
-      setBackendStatus(ok ? 'awake' : 'offline')
-    })
-    return () => clearTimeout(slowTimer)
+    let cancelled = false
+    const MAX_ATTEMPTS = 8
+    const RETRY_DELAY_MS = 5000
+
+    async function pollHealth(attempt) {
+      if (cancelled || healthResolvedRef.current) return
+
+      const { ok } = await checkHealth()
+      if (cancelled || healthResolvedRef.current) return
+
+      if (ok) {
+        healthResolvedRef.current = true
+        setBackendStatus('awake')
+        return
+      }
+
+      if (attempt >= MAX_ATTEMPTS) {
+        setBackendStatus('offline')
+        return
+      }
+
+      setCheckingSlow(true)
+      setTimeout(() => pollHealth(attempt + 1), RETRY_DELAY_MS)
+    }
+
+    pollHealth(1)
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const busy = loading || downloading !== null
@@ -277,9 +314,9 @@ function App() {
       const info = await getVideoInfo(trimmed)
       setVideoInfo(info)
       setSelectedHeight(info.video_qualities[0]?.height ?? null)
+      markBackendAwake()
     } catch (err) {
-      setError(err.message)
-      setErrorStatus(err.cause?.status ?? null)
+      handleApiError(err)
     } finally {
       setLoading(false)
     }
@@ -310,9 +347,9 @@ function App() {
         const quality = isYouTube ? selectedAudioQuality : '320'
         await downloadAudio(url.trim(), quality, setProgress)
       }
+      markBackendAwake()
     } catch (err) {
-      setError(err.message)
-      setErrorStatus(err.cause?.status ?? null)
+      handleApiError(err)
     } finally {
       setDownloading(null)
       setProgress(null)
