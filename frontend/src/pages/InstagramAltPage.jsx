@@ -14,6 +14,21 @@ import {
 import { downloadInstagramMedia, getInstagramFallback } from '../lib/api'
 import { BOX, PRESS, WIDTH, Spinner, ProgressBar, useBackendStatus, BackendStatusBanner } from '../components/shared'
 
+const REEL_PATH_PREFIXES = ['/reel/', '/reels/']
+
+function isInstagramReelUrl(value) {
+  let parsed
+  try {
+    parsed = new URL(value)
+  } catch {
+    return false
+  }
+  const hostname = parsed.hostname.toLowerCase()
+  if (hostname !== 'instagram.com' && !hostname.endsWith('.instagram.com')) return false
+  const path = parsed.pathname.endsWith('/') ? parsed.pathname : `${parsed.pathname}/`
+  return REEL_PATH_PREFIXES.some((prefix) => path.toLowerCase().startsWith(prefix))
+}
+
 const ALT_BADGES = [
   { Icon: Camera, text: 'SOLO REELS', rotate: '-rotate-1 sm:-rotate-2', className: 'bg-fuchsia-300' },
   { Icon: Zap, text: 'API RÁPIDA', rotate: 'rotate-1 sm:rotate-2', className: 'bg-yellow-300' },
@@ -121,6 +136,13 @@ export default function InstagramAltPage() {
 
     if (!/^https?:\/\//i.test(trimmed)) {
       setError('Ese link no parece válido. Tiene que empezar con http:// o https://')
+      return
+    }
+
+    if (!isInstagramReelUrl(trimmed)) {
+      setError(
+        'Esta API alternativa solo funciona con links de Reels de Instagram. Revisalo antes de buscar para no gastar peticiones de la API.',
+      )
       return
     }
 

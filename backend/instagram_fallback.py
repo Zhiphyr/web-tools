@@ -19,6 +19,18 @@ def _strip_query(url: str) -> str:
     return urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
 
 
+_CONTENT_PATH_PREFIXES = ("/reel/", "/reels/")
+
+
+def _is_instagram_content_url(url: str) -> bool:
+    parts = urlsplit(url)
+    hostname = parts.netloc.lower()
+    if hostname != "instagram.com" and not hostname.endswith(".instagram.com"):
+        return False
+    path = parts.path if parts.path.endswith("/") else parts.path + "/"
+    return path.lower().startswith(_CONTENT_PATH_PREFIXES)
+
+
 class _QuotaExceeded(Exception):
     pass
 
@@ -75,6 +87,11 @@ def get_instagram_media(url: str) -> dict:
         raise InstagramFallbackError("La API alternativa no está configurada en el servidor.")
 
     clean_url = _strip_query(url)
+
+    if not _is_instagram_content_url(clean_url):
+        raise InstagramFallbackError(
+            "Esta API alternativa solo funciona con links de Reels de Instagram."
+        )
 
     for key in keys:
         try:
