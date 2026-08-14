@@ -95,3 +95,16 @@ export function downloadAudio(url, quality, onProgress) {
   const ext = quality === "wav" ? "wav" : "mp3";
   return downloadFile("/download/audio", { url, quality }, `audio.${ext}`, onProgress);
 }
+
+export async function getInstagramFallback(url) {
+  const res = await fetch(`${API_URL}/instagram-fallback`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url }),
+  });
+  if (!res.ok) {
+    const { message, status } = await parseErrorMessage(res);
+    throw new Error(message, { cause: { status } });
+  }
+  return res.json();
+}
