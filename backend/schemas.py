@@ -44,3 +44,9 @@ class InstagramFallbackResponse(BaseModel):
     is_video: bool
     is_carousel: bool
     carousel_count: int | None = None
+
+
+class InstagramFallbackDownloadRequest(BaseModel):
+    url: str
+    filename: str | None = None
+    is_video: bool = True

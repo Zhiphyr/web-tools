@@ -9,10 +9,15 @@ class Settings(BaseSettings):
     ffmpeg_location: str | None = None
     cookies_file: str | None = None
     rapidapi_key: str | None = None
+    rapidapi_key_2: str | None = None
 
     @property
     def allowed_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.allowed_origins.split(",") if origin.strip()]
+
+    @property
+    def rapidapi_keys(self) -> list[str]:
+        return [key for key in (self.rapidapi_key, self.rapidapi_key_2) if key]
 
 
 settings = Settings()

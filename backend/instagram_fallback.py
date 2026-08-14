@@ -1,6 +1,11 @@
+import uuid
+from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
+
 from curl_cffi import requests as curl_requests
 
 from config import settings
+from ytdlp_service import DOWNLOAD_DIR
 
 RAPIDAPI_HOST = "instagram-downloader-download-instagram-videos-stories1.p.rapidapi.com"
 
@@ -9,24 +14,28 @@ class InstagramFallbackError(Exception):
     pass
 
 
-def get_instagram_media(url: str) -> dict:
-    if not settings.rapidapi_key:
-        raise InstagramFallbackError("La API alternativa no está configurada en el servidor.")
+def _strip_query(url: str) -> str:
+    parts = urlsplit(url)
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
 
+
+class _QuotaExceeded(Exception):
+    pass
+
+
+def _request_media_info(clean_url: str, key: str) -> dict:
     response = curl_requests.get(
         f"https://{RAPIDAPI_HOST}/get-info-rapidapi",
-        params={"url": url},
+        params={"url": clean_url},
         headers={
-            "x-rapidapi-key": settings.rapidapi_key,
+            "x-rapidapi-key": key,
             "x-rapidapi-host": RAPIDAPI_HOST,
         },
         timeout=20,
     )
 
     if response.status_code == 429:
-        raise InstagramFallbackError(
-            "Se agotó la cuota diaria de la API alternativa. Probá de nuevo más tarde."
-        )
+        raise _QuotaExceeded()
     if response.status_code == 204 or not response.content:
         raise InstagramFallbackError(
             "No se encontró ese contenido. Puede ser privado, haber sido eliminado, o no estar disponible."
@@ -58,3 +67,40 @@ def get_instagram_media(url: str) -> dict:
         "is_carousel": False,
         "carousel_count": None,
     }
+
+
+def get_instagram_media(url: str) -> dict:
+    keys = settings.rapidapi_keys
+    if not keys:
+        raise InstagramFallbackError("La API alternativa no está configurada en el servidor.")
+
+    clean_url = _strip_query(url)
+
+    for key in keys:
+        try:
+            return _request_media_info(clean_url, key)
+        except _QuotaExceeded:
+            continue
+
+    raise InstagramFallbackError(
+        "Se agotó la cuota de la API alternativa en todas las cuentas configuradas. Probá de nuevo más tarde."
+    )
+
+
+def download_instagram_media_file(cdn_url: str, is_video: bool) -> tuple[Path, str]:
+    # We proxy this ourselves (instead of linking straight to the CDN url) because
+    # whether that link triggers a download or just opens the video inline depends
+    # on headers Instagram's CDN sets inconsistently — serving it from our own
+    # backend lets us force a real download every time.
+    response = curl_requests.get(cdn_url, timeout=30)
+    if response.status_code != 200 or not response.content:
+        raise InstagramFallbackError("No se pudo descargar el archivo desde Instagram.")
+
+    if is_video:
+        ext, media_type = ".mp4", "video/mp4"
+    else:
+        ext, media_type = ".jpg", "image/jpeg"
+
+    file_path = DOWNLOAD_DIR / f"{uuid.uuid4().hex}{ext}"
+    file_path.write_bytes(response.content)
+    return file_path, media_type

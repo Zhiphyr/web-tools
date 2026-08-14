@@ -7,15 +7,21 @@ from starlette.background import BackgroundTask
 
 from config import settings
 from errors import to_http_exception
-from instagram_fallback import InstagramFallbackError, get_instagram_media
+from instagram_fallback import (
+    InstagramFallbackError,
+    download_instagram_media_file,
+    get_instagram_media,
+)
 from schemas import (
     DownloadAudioRequest,
     DownloadVideoRequest,
+    InstagramFallbackDownloadRequest,
     InstagramFallbackRequest,
     InstagramFallbackResponse,
     VideoInfoRequest,
     VideoInfoResponse,
 )
+from utils import sanitize_filename
 from ytdlp_service import download_audio, download_video, get_video_info
 
 app = FastAPI(title="web-tools API")
@@ -93,3 +99,20 @@ def instagram_fallback(payload: InstagramFallbackRequest):
             status_code=500,
             detail="Ocurrió un error inesperado al usar la API alternativa.",
         )
+
+
+@app.post("/instagram-fallback/download")
+def instagram_fallback_download(payload: InstagramFallbackDownloadRequest):
+    try:
+        file_path, media_type = download_instagram_media_file(payload.url, payload.is_video)
+    except InstagramFallbackError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    download_name = sanitize_filename(payload.filename or "instagram-media") + file_path.suffix
+
+    return FileResponse(
+        path=file_path,
+        media_type=media_type,
+        filename=download_name,
+        background=BackgroundTask(os.remove, file_path),
+    )
