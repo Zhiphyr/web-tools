@@ -37,7 +37,7 @@ export default function Sidebar({ activePage, onNavigate }) {
         type="button"
         onClick={() => setMobileOpen(true)}
         aria-label="Abrir menú"
-        className="fixed left-3 top-[4.25rem] z-40 flex h-10 w-10 items-center justify-center border-[3px] border-black bg-yellow-300 shadow-[3px_3px_0_0_#000] sm:hidden active:translate-y-1 active:shadow-none transition-all"
+        className="absolute left-3 top-[4.25rem] z-40 flex h-10 w-10 items-center justify-center border-[3px] border-black bg-yellow-300 shadow-[3px_3px_0_0_#000] sm:hidden active:translate-y-1 active:shadow-none transition-all"
       >
         <Menu className="h-5 w-5" strokeWidth={2.5} aria-hidden="true" />
       </button>
