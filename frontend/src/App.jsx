@@ -9,11 +9,11 @@ export default function App() {
   const [activePage, setActivePage] = useState('main')
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
+    <div className="flex min-h-screen w-full flex-col overflow-x-hidden">
       <Marquee />
       <div className="flex w-full flex-1">
         <Sidebar activePage={activePage} onNavigate={setActivePage} />
-        <main className="flex flex-1 justify-center px-3 py-8 sm:px-6 sm:py-12">
+        <main className="flex flex-1 justify-center min-w-0 px-3 py-8 sm:px-6 sm:py-12">
           {activePage === 'instagram-alt' ? <InstagramAltPage /> : <MainDownloader />}
         </main>
       </div>

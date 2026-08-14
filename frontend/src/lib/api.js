@@ -96,6 +96,16 @@ export function downloadAudio(url, quality, onProgress) {
   return downloadFile("/download/audio", { url, quality }, `audio.${ext}`, onProgress);
 }
 
+export function downloadInstagramMedia(downloadUrl, title, isVideo, onProgress) {
+  const ext = isVideo ? "mp4" : "jpg";
+  return downloadFile(
+    "/instagram-fallback/download",
+    { url: downloadUrl, filename: title, is_video: isVideo },
+    `instagram-media.${ext}`,
+    onProgress,
+  );
+}
+
 export async function getInstagramFallback(url) {
   const res = await fetch(`${API_URL}/instagram-fallback`, {
     method: "POST",

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import {
   AlertTriangle,
   Camera,
@@ -13,13 +13,11 @@ import {
   RotateCcw,
   Shield,
   User,
-  Wifi,
-  WifiOff,
   X as XIcon,
   Zap,
 } from 'lucide-react'
-import { checkHealth, downloadAudio, downloadVideo, getVideoInfo } from '../lib/api'
-import { BOX, PRESS, WIDTH, Spinner, ProgressBar, formatDuration, formatSize } from '../components/shared'
+import { downloadAudio, downloadVideo, getVideoInfo } from '../lib/api'
+import { BOX, PRESS, WIDTH, Spinner, ProgressBar, formatDuration, formatSize, useBackendStatus, BackendStatusBanner } from '../components/shared'
 
 function detectPlatform(inputUrl) {
   if (!inputUrl) return null
@@ -148,14 +146,7 @@ export default function MainDownloader() {
   const [progress, setProgress] = useState(null)
   const [selectedHeight, setSelectedHeight] = useState(null)
   const [selectedAudioQuality, setSelectedAudioQuality] = useState('320')
-  const [backendStatus, setBackendStatus] = useState('checking')
-  const [checkingSlow, setCheckingSlow] = useState(false)
-  const healthResolvedRef = useRef(false)
-
-  function markBackendAwake() {
-    healthResolvedRef.current = true
-    setBackendStatus('awake')
-  }
+  const { status: backendStatus, checkingSlow, markAwake: markBackendAwake } = useBackendStatus()
 
   function handleApiError(err) {
     const status = err.cause?.status ?? null
@@ -164,38 +155,6 @@ export default function MainDownloader() {
     // A defined status means the backend actually answered (even with an error) — it's awake.
     if (status != null) markBackendAwake()
   }
-
-  useEffect(() => {
-    let cancelled = false
-    const MAX_ATTEMPTS = 8
-    const RETRY_DELAY_MS = 5000
-
-    async function pollHealth(attempt) {
-      if (cancelled || healthResolvedRef.current) return
-
-      const { ok } = await checkHealth()
-      if (cancelled || healthResolvedRef.current) return
-
-      if (ok) {
-        healthResolvedRef.current = true
-        setBackendStatus('awake')
-        return
-      }
-
-      if (attempt >= MAX_ATTEMPTS) {
-        setBackendStatus('offline')
-        return
-      }
-
-      setCheckingSlow(true)
-      setTimeout(() => pollHealth(attempt + 1), RETRY_DELAY_MS)
-    }
-
-    pollHealth(1)
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const busy = loading || downloading !== null
 
@@ -293,28 +252,11 @@ export default function MainDownloader() {
   return (
     <div className="flex w-full flex-col items-center">
       <div className="mb-3 flex justify-center text-center sm:mb-4">
-        {backendStatus === 'checking' && (
-          <span className="flex items-center gap-1.5 border-[2.5px] sm:border-[3px] border-black bg-white px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-black uppercase">
-            <Spinner className="h-3 w-3" />
-            {checkingSlow ? 'Despertando servidor... puede tardar' : 'Verificando servidor...'}
-          </span>
-        )}
-        {backendStatus === 'awake' && (
-          <span className="flex items-center gap-1.5 border-[2.5px] sm:border-[3px] border-black bg-lime-300 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-black uppercase">
-            <Wifi className="h-3 w-3" strokeWidth={2.5} aria-hidden="true" />
-            Backend activo
-          </span>
-        )}
-        {backendStatus === 'offline' && (
-          <span className="flex items-center gap-1.5 border-[2.5px] sm:border-[3px] border-black bg-red-400 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-black uppercase">
-            <WifiOff className="h-3 w-3" strokeWidth={2.5} aria-hidden="true" />
-            Backend no responde
-          </span>
-        )}
+        <BackendStatusBanner status={backendStatus} checkingSlow={checkingSlow} />
       </div>
 
       <h1
-        className={`inline-block -rotate-1 bg-yellow-300 px-4 py-2 sm:px-6 sm:py-3 text-2xl sm:text-4xl text-center font-black uppercase tracking-tight ${BOX}`}
+        className={`inline-block -rotate-1 bg-yellow-300 px-4 py-2 sm:px-6 sm:py-3 text-xl sm:text-4xl text-center font-black uppercase tracking-tight ${BOX}`}
       >
         Descargar video o audio
       </h1>
