@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     allowed_origins: str = "http://localhost:5173"
     download_dir: str = "downloads"
     ffmpeg_location: str | None = None
+    cookies_file: str | None = None
 
     @property
     def allowed_origins_list(self) -> list[str]:

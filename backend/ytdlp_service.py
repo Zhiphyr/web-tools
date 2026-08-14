@@ -15,6 +15,14 @@ WAV_BITRATE_KBPS = 1411  # 16-bit stereo 44.1kHz PCM
 AUDIO_QUALITIES = {"320", "128", "wav"}
 
 
+def _apply_common_opts(ydl_opts: dict) -> dict:
+    if settings.ffmpeg_location:
+        ydl_opts["ffmpeg_location"] = settings.ffmpeg_location
+    if settings.cookies_file:
+        ydl_opts["cookiefile"] = settings.cookies_file
+    return ydl_opts
+
+
 def _resolve_downloaded_path(ydl: yt_dlp.YoutubeDL, info: dict) -> Path:
     requested = info.get("requested_downloads")
     if requested:
@@ -98,11 +106,11 @@ def _estimate_audio_sizes(duration: float | None) -> dict[str, int]:
 
 
 def get_video_info(url: str) -> dict:
-    ydl_opts = {
+    ydl_opts = _apply_common_opts({
         "quiet": True,
         "noplaylist": True,
         "skip_download": True,
-    }
+    })
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
 
@@ -126,15 +134,13 @@ def download_video(url: str, height: int | None = None) -> tuple[Path, str]:
 
     format_selector = f"bv*[height<={height}]+ba/b[height<={height}]" if height else "bv*+ba/b"
 
-    ydl_opts = {
+    ydl_opts = _apply_common_opts({
         "quiet": True,
         "noplaylist": True,
         "format": format_selector,
         "merge_output_format": "mp4",
         "outtmpl": outtmpl,
-    }
-    if settings.ffmpeg_location:
-        ydl_opts["ffmpeg_location"] = settings.ffmpeg_location
+    })
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
         file_path = _resolve_downloaded_path(ydl, info)
@@ -155,15 +161,13 @@ def download_audio(url: str, quality: str = "320") -> tuple[Path, str]:
     if codec == "mp3":
         postprocessor["preferredquality"] = quality
 
-    ydl_opts = {
+    ydl_opts = _apply_common_opts({
         "quiet": True,
         "noplaylist": True,
         "format": "bestaudio/best",
         "outtmpl": outtmpl,
         "postprocessors": [postprocessor],
-    }
-    if settings.ffmpeg_location:
-        ydl_opts["ffmpeg_location"] = settings.ffmpeg_location
+    })
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
         original_path = Path(ydl.prepare_filename(info))
