@@ -14,7 +14,7 @@ function NavButton({ item, active, onClick }) {
       className={`flex items-center gap-2 border-[3px] border-black px-3 py-2.5 text-left text-xs font-black uppercase transition-all ${
         active
           ? 'bg-yellow-300 shadow-[4px_4px_0_0_#000] -translate-y-0.5 -translate-x-0.5'
-          : 'bg-white hover:bg-gray-100 hover:shadow-[2px_2px_0_0_#000] hover:-translate-y-[1px]'
+          : 'bg-white hover:bg-gray-100 hover:shadow-[2px_2px_0_0_#000] hover:-translate-y-px'
       }`}
     >
       <item.Icon className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden="true" />
@@ -37,7 +37,7 @@ export default function Sidebar({ activePage, onNavigate }) {
         type="button"
         onClick={() => setMobileOpen(true)}
         aria-label="Abrir menú"
-        className="fixed left-3 top-[4.25rem] z-40 flex h-10 w-10 items-center justify-center border-[3px] border-black bg-yellow-300 shadow-[3px_3px_0_0_#000] sm:hidden active:translate-y-1 active:shadow-none transition-all"
+        className="fixed left-3 top-17 z-40 flex h-10 w-10 items-center justify-center border-[3px] border-black bg-yellow-300 shadow-[3px_3px_0_0_#000] sm:hidden active:translate-y-1 active:shadow-none transition-all"
       >
         <Menu className="h-5 w-5" strokeWidth={2.5} aria-hidden="true" />
       </button>

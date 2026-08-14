@@ -75,7 +75,7 @@ function HowItWorksAlt() {
             className={`flex flex-col gap-1.5 sm:gap-2 bg-white p-3.5 sm:p-4 ${BOX} transition-transform hover:-translate-y-1`}
           >
             <div className="flex items-center justify-between">
-              <span className={`border-[2px] border-black ${item.bg} px-2 py-0.5 text-[10px] sm:text-xs font-black`}>
+              <span className={`border-2 border-black ${item.bg} px-2 py-0.5 text-[10px] sm:text-xs font-black`}>
                 PASO {item.step}
               </span>
               <item.Icon className="h-4 w-4 sm:h-5 sm:w-5 text-black" strokeWidth={2.5} />
@@ -210,7 +210,7 @@ export default function InstagramAltPage() {
               onClick={handleClear}
               disabled={loading}
               aria-label="Limpiar"
-              className="absolute right-2 top-1/2 flex h-7 w-7 sm:h-8 sm:w-8 -translate-y-1/2 items-center justify-center border-[2px] sm:border-[3px] border-black bg-[#ff5c5c] hover:bg-[#ff7a7a] active:translate-y-[-40%] disabled:opacity-50"
+              className="absolute right-2 top-1/2 flex h-7 w-7 sm:h-8 sm:w-8 -translate-y-1/2 items-center justify-center border-2 sm:border-[3px] border-black bg-[#ff5c5c] hover:bg-[#ff7a7a] active:translate-y-[-40%] disabled:opacity-50"
             >
               <XIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-black" strokeWidth={3} aria-hidden="true" />
             </button>
@@ -267,7 +267,7 @@ export default function InstagramAltPage() {
       {!loading && result && (
         <div className={`mt-6 sm:mt-8 flex flex-col gap-4 sm:gap-5 ${WIDTH} bg-white p-4 sm:p-5 ${BOX}`}>
           <div className="flex flex-wrap items-center justify-between gap-2 border-b-[3px] border-black pb-3">
-            <span className="border-[2px] border-black bg-lime-300 px-2 py-0.5 text-[10px] sm:text-xs font-black uppercase">
+            <span className="border-2 border-black bg-lime-300 px-2 py-0.5 text-[10px] sm:text-xs font-black uppercase">
               ✓ ENCONTRADO
             </span>
             <button
@@ -303,7 +303,7 @@ export default function InstagramAltPage() {
               {result.title}
             </h2>
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <span className="border-[2px] border-black bg-black px-2 py-0.5 text-[10px] sm:text-xs font-black uppercase text-white">
+              <span className="border-2 border-black bg-black px-2 py-0.5 text-[10px] sm:text-xs font-black uppercase text-white">
                 {result.is_video ? 'Video' : 'Imagen'}
               </span>
               {url && (
@@ -311,7 +311,7 @@ export default function InstagramAltPage() {
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 border-[2px] border-black bg-white px-2 py-0.5 text-[10px] sm:text-xs font-black uppercase hover:bg-gray-100"
+                  className="flex items-center gap-1 border-2 border-black bg-white px-2 py-0.5 text-[10px] sm:text-xs font-black uppercase hover:bg-gray-100"
                 >
                   <ExternalLink className="h-3 w-3" strokeWidth={2.5} />
                   Ver original
