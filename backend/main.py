@@ -1,13 +1,21 @@
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 
 from config import settings
 from errors import to_http_exception
-from schemas import DownloadAudioRequest, DownloadVideoRequest, VideoInfoRequest, VideoInfoResponse
+from instagram_fallback import InstagramFallbackError, get_instagram_media
+from schemas import (
+    DownloadAudioRequest,
+    DownloadVideoRequest,
+    InstagramFallbackRequest,
+    InstagramFallbackResponse,
+    VideoInfoRequest,
+    VideoInfoResponse,
+)
 from ytdlp_service import download_audio, download_video, get_video_info
 
 app = FastAPI(title="web-tools API")
@@ -69,3 +77,19 @@ def download_audio_endpoint(payload: DownloadAudioRequest):
         filename=download_name,
         background=BackgroundTask(os.remove, file_path),
     )
+
+
+@app.post("/instagram-fallback", response_model=InstagramFallbackResponse)
+def instagram_fallback(payload: InstagramFallbackRequest):
+    try:
+        return get_instagram_media(payload.url)
+    except InstagramFallbackError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception:
+        import traceback
+
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail="Ocurrió un error inesperado al usar la API alternativa.",
+        )

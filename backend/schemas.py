@@ -29,3 +29,18 @@ class DownloadVideoRequest(BaseModel):
 class DownloadAudioRequest(BaseModel):
     url: str
     quality: str = "320"
+
+
+class InstagramFallbackRequest(BaseModel):
+    url: str
+
+
+class InstagramFallbackResponse(BaseModel):
+    title: str
+    thumbnail: str | None = None
+    duration: float | None = None
+    uploader: str | None = None
+    download_url: str
+    is_video: bool
+    is_carousel: bool
+    carousel_count: int | None = None

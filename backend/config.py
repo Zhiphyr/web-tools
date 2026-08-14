@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     download_dir: str = "downloads"
     ffmpeg_location: str | None = None
     cookies_file: str | None = None
+    rapidapi_key: str | None = None
 
     @property
     def allowed_origins_list(self) -> list[str]:
