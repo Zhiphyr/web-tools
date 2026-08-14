@@ -15,11 +15,27 @@ WAV_BITRATE_KBPS = 1411  # 16-bit stereo 44.1kHz PCM
 AUDIO_QUALITIES = {"320", "128", "wav"}
 
 
+def _prepare_writable_cookies_file() -> Path | None:
+    # yt-dlp writes updated cookies back to this file on close(), so it can't point
+    # straight at a Render Secret File (mounted read-only) — copy it somewhere writable.
+    if not settings.cookies_file:
+        return None
+    source = Path(settings.cookies_file)
+    if not source.exists():
+        return None
+    writable = DOWNLOAD_DIR / "cookies.txt"
+    writable.write_bytes(source.read_bytes())
+    return writable
+
+
+_WRITABLE_COOKIES_FILE = _prepare_writable_cookies_file()
+
+
 def _apply_common_opts(ydl_opts: dict) -> dict:
     if settings.ffmpeg_location:
         ydl_opts["ffmpeg_location"] = settings.ffmpeg_location
-    if settings.cookies_file:
-        ydl_opts["cookiefile"] = settings.cookies_file
+    if _WRITABLE_COOKIES_FILE:
+        ydl_opts["cookiefile"] = str(_WRITABLE_COOKIES_FILE)
     return ydl_opts
 
 
