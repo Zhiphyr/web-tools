@@ -37,14 +37,14 @@ export default function Sidebar({ activePage, onNavigate }) {
         type="button"
         onClick={() => setMobileOpen(true)}
         aria-label="Abrir menú"
-        className="fixed left-3 top-17 z-40 flex h-10 w-10 items-center justify-center border-[3px] border-black bg-yellow-300 shadow-[3px_3px_0_0_#000] sm:hidden active:translate-y-1 active:shadow-none transition-all"
+        className="fixed left-3 top-[4.25rem] z-40 flex h-10 w-10 items-center justify-center border-[3px] border-black bg-yellow-300 shadow-[3px_3px_0_0_#000] sm:hidden active:translate-y-1 active:shadow-none transition-all"
       >
         <Menu className="h-5 w-5" strokeWidth={2.5} aria-hidden="true" />
       </button>
 
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex sm:hidden">
-          <div className="flex w-64 flex-col gap-3 border-r-[3px] border-black bg-[#fdf6e3] p-4 shadow-[8px_0_0_0_rgba(0,0,0,0.2)]">
+          <div className="animate-slide-in flex w-64 flex-col gap-3 border-r-[3px] border-black bg-[#fdf6e3] p-4 shadow-[8px_0_0_0_rgba(0,0,0,0.2)]">
             <div className="mb-2 flex items-center justify-between border-b-[3px] border-black pb-4">
               <div className="flex items-center justify-center border-[2.5px] border-black bg-black px-3 py-1.5 text-white shadow-[3px_3px_0_0_#facc15]">
                 <span className="text-[10px] font-black uppercase tracking-widest">⚡ Menú</span>
@@ -63,7 +63,7 @@ export default function Sidebar({ activePage, onNavigate }) {
             ))}
           </div>
           <div
-            className="flex-1 bg-black/40 backdrop-blur-sm"
+            className="animate-fade-in flex-1 bg-black/40 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
             aria-hidden="true"
           />
