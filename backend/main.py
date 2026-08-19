@@ -40,8 +40,8 @@ def root():
     return {"status": "ok"}
 
 
-@app.get("/health")
-def health():
+@app.get("/status")
+def status():
     return {"status": "ok"}
 
 

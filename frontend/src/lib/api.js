@@ -19,7 +19,7 @@ function filenameFromContentDisposition(header, fallback) {
 export async function checkHealth() {
   const start = performance.now();
   try {
-    const res = await fetch(`${API_URL}/health`);
+    const res = await fetch(`${API_URL}/status`);
     const elapsed = performance.now() - start;
     return { ok: res.ok, elapsed };
   } catch {
